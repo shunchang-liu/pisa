@@ -1,6 +1,18 @@
 # Preference Instability in Reward Models: Detection and Mitigation via Sparse Autoencoders
 
-This repository contains the official implementation of the paper. We introduce a framework for detecting and mitigating preference instability in reward models using Sparse Autoencoders (SAEs). The pipeline covers three stages: perturbation generation, SAE-based instability detection, and reward correction at inference time.
+<p align="center">
+  <a href="https://arxiv.org/abs/2605.16339">
+    <img src="https://img.shields.io/badge/arXiv-2605.16339-b31b1b.svg" alt="arXiv"/>
+  </a>
+  &nbsp;
+  <a href="https://huggingface.co/Shunchang/sae-rm-checkpoints">
+    <img src="https://img.shields.io/badge/🤗%20Hugging%20Face-Checkpoints-yellow" alt="HuggingFace Checkpoints"/>
+  </a>
+  &nbsp;
+  <a href="https://huggingface.co/datasets/Shunchang/sae-rm-perturbation-data">
+    <img src="https://img.shields.io/badge/🤗%20Hugging%20Face-Datasets-yellow" alt="HuggingFace Datasets"/>
+  </a>
+</p>
 
 <p align="center">
   <img src="figures/overview.png" width="850"/>
@@ -14,7 +26,8 @@ This repository contains the official implementation of the paper. We introduce 
 2. [Pretrained Models and Datasets](#pretrained-models-and-datasets)
 3. [Repository Structure](#repository-structure)
 4. [Full Reproduction Pipeline](#full-reproduction-pipeline)
-5. [Citation](#citation)
+5. [License](#license)
+6. [Citation](#citation)
 
 ---
 
@@ -35,9 +48,27 @@ The SAE training and inference rely on [SAELens](https://github.com/jbloomAus/SA
 
 ## Pretrained Models and Datasets
 
-### Downloading from Hugging Face
+### Reward Models
 
-All perturbation datasets and pretrained SAE checkpoints are hosted on Hugging Face. Run the following to download everything at once.
+The following publicly available reward models are used in our experiments and downloaded automatically via the Hugging Face Hub.
+
+| Tag               | Model ID                                                                                                                          |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| beaver-2-7b       | [PKU-Alignment/beaver-7b-v2.0-reward](https://huggingface.co/PKU-Alignment/beaver-7b-v2.0-reward)                               |
+| llama-3-8b        | [Skywork/Skywork-Reward-V2-Llama-3.1-8B](https://huggingface.co/Skywork/Skywork-Reward-V2-Llama-3.1-8B)                        |
+| qwen-3-4b         | [Skywork/Skywork-Reward-V2-Qwen3-4B](https://huggingface.co/Skywork/Skywork-Reward-V2-Qwen3-4B)                                |
+| llama-7b-poisoned | [ethz-spylab/poisoned-reward-7b-SUDO-10](https://huggingface.co/ethz-spylab/poisoned-reward-7b-SUDO-10)                        |
+
+### Datasets
+
+| Dataset      | HuggingFace Link                                                                                   | Usage                                      |
+| ------------ | -------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| Anthropic HH | [Anthropic/hh-rlhf](https://huggingface.co/datasets/Anthropic/hh-rlhf)                           | SAE training and perturbation evaluation   |
+| TruthfulQA   | [truthfulqa/truthful_qa](https://huggingface.co/datasets/truthfulqa/truthful_qa)                  | Hallucination evaluation                   |
+
+### Our Artifacts
+
+Perturbation datasets and pretrained SAE checkpoints are hosted on Hugging Face. Run the following to download everything at once.
 
 ```python
 from huggingface_hub import snapshot_download
@@ -57,6 +88,11 @@ snapshot_download(
 )
 ```
 
+| Artifact              | HuggingFace Link                                                                                                   |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Perturbation datasets | [Shunchang/sae-rm-perturbation-data](https://huggingface.co/datasets/Shunchang/sae-rm-perturbation-data)         |
+| SAE checkpoints       | [Shunchang/sae-rm-checkpoints](https://huggingface.co/Shunchang/sae-rm-checkpoints)                              |
+
 After downloading, set the environment variable pointing to the SAE checkpoint for your target model. Each subfolder corresponds to one reward model at layer 12.
 
 ```bash
@@ -74,41 +110,6 @@ export SAE_CHECKPOINT=./checkpoints/qwen-3-4b_layer12
 
 export OPENAI_API_KEY=<your-key>   # only needed for gradient perturbations
 ```
-
-### Uploading Your Own Artifacts to Hugging Face
-
-If you retrain the SAE or generate new perturbation data and want to share them, use the following.
-
-```python
-from huggingface_hub import HfApi
-
-api = HfApi()
-
-# Upload perturbation datasets
-api.upload_folder(
-    folder_path="./perturbation_results",
-    repo_id="Shunchang/sae-rm-perturbation-data",
-    repo_type="dataset"
-)
-
-# Upload SAE checkpoints
-api.upload_folder(
-    folder_path="./checkpoints",
-    repo_id="Shunchang/sae-rm-checkpoints",
-    repo_type="model"
-)
-```
-
-### Reward Models
-
-The following publicly available reward models were used in our experiments. They are downloaded automatically by the scripts via the Hugging Face Hub.
-
-| Tag               | Model ID                               |
-| ----------------- | -------------------------------------- |
-| beaver-2-7b       | PKU-Alignment/beaver-7b-v2.0-reward    |
-| llama-3-8b        | Skywork/Skywork-Reward-V2-Llama-3.1-8B |
-| qwen-3-4b         | Skywork/Skywork-Reward-V2-Qwen3-4B     |
-| llama-7b-poisoned | ethz-spylab/poisoned-reward-7b-SUDO-10 |
 
 ---
 
@@ -188,7 +189,7 @@ To run detection across multiple perturbation datasets at once, uncomment the mu
 
 Three methods are implemented. Run any subset depending on which comparisons you want to reproduce.
 
-**SAE Feature Steering** suppresses the top-K most anomalous SAE features at inference time. The suppression multiplier eta is set to the value reported in the paper by default.
+**SAE Feature Steering** suppresses the top-K most anomalous SAE features at inference time.
 
 ```bash
 sbatch slurm/run_sae_feature_steering.sh
@@ -210,7 +211,7 @@ Results for each method are written to `./mitigation_results/`.
 
 ### Step 5 — Evaluate on RewardBench 2
 
-This step evaluates all methods for out-of-distribution generalization on the RewardBench 2 benchmark.
+This step evaluates all methods for out-of-distribution generalization on [RewardBench 2](https://huggingface.co/spaces/allenai/reward-bench-2).
 
 Open `slurm/run_evaluate_rb2.sh` to confirm the model, methods, and hyperparameters. The `METHODS` variable controls which methods are evaluated in a single run.
 
@@ -218,11 +219,9 @@ Open `slurm/run_evaluate_rb2.sh` to confirm the model, methods, and hyperparamet
 sbatch slurm/run_evaluate_rb2.sh
 ```
 
-Results are written to `./rb2_results/`. The script saves per-method accuracy on both in-distribution and out-of-distribution splits.
+Results are written to `./rb2_results/`.
 
 ### Step 6 — Analyze SAE Feature Distributions
-
-This step produces feature-level statistics and activation distribution summaries used in the analysis figures of the paper.
 
 ```bash
 sbatch slurm/run_analyze_features.sh
@@ -233,8 +232,6 @@ Output is written to `./feature_analysis/`.
 ---
 
 ### Hyperparameter Reference
-
-The table below lists all hyperparameters used in the main experiments. Default values in the scripts match the paper.
 
 | Method                  | Parameter               | Paper Value | Ablation Values            |
 | ----------------------- | ----------------------- | ----------- | -------------------------- |
@@ -249,10 +246,21 @@ The table below lists all hyperparameters used in the main experiments. Default 
 
 ---
 
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+---
+
 ## Citation
 
+If you find this work useful, please cite our paper:
+
 ```bibtex
-@inproceedings{
-  TODO,
+@article{liu2026preference,
+  title={Preference Instability in Reward Models: Detection and Mitigation via Sparse Autoencoders},
+  author={Liu, Shunchang and Chen, Xin and Urcelay, Belen Martin and Croce, Francesco},
+  journal={arXiv preprint arXiv:2605.16339},
+  year={2026}
 }
 ```
