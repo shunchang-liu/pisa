@@ -1,19 +1,10 @@
 # Preference Instability in Reward Models: Detection and Mitigation via Sparse Autoencoders
 
 <p align="center">
-  <a href="https://arxiv.org/abs/2605.16339">
-    <img src="https://img.shields.io/badge/arXiv-2605.16339-b31b1b.svg" alt="arXiv"/>
-  </a>
-  &nbsp;
-  <a href="https://huggingface.co/Shunchang/sae-rm-checkpoints">
-    <img src="https://img.shields.io/badge/🤗%20Hugging%20Face-Checkpoints-yellow" alt="HuggingFace Checkpoints"/>
-  </a>
-  &nbsp;
-  <a href="https://huggingface.co/datasets/Shunchang/sae-rm-perturbation-data">
-    <img src="https://img.shields.io/badge/🤗%20Hugging%20Face-Datasets-yellow" alt="HuggingFace Datasets"/>
-  </a>
+  <a href="https://arxiv.org/abs/2605.16339"><img src="https://img.shields.io/badge/arXiv-2605.16339-b31b1b.svg" alt="arXiv"/></a>
+  <a href="https://huggingface.co/Shunchang/sae-rm-checkpoints"><img src="https://img.shields.io/badge/🤗%20Hugging%20Face-Checkpoints-yellow" alt="HuggingFace Checkpoints"/></a>
+  <a href="https://huggingface.co/datasets/Shunchang/sae-rm-perturbation-data"><img src="https://img.shields.io/badge/🤗%20Hugging%20Face-Datasets-yellow" alt="HuggingFace Datasets"/></a>
 </p>
-
 <p align="center">
   <img src="figures/overview.png" width="850"/>
 </p>
